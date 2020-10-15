@@ -1,0 +1,1 @@
+# maven-osgi-dependency-helper
