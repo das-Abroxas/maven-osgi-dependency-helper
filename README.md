@@ -2,6 +2,8 @@
 
 This project contains a bash script that can be used by a small group to better keep track of which dependencies of their current OSGi project(s) are already deployed in the framework.
 
+**Note:** This tool does not deploy dependencies in your OSGi framework!
+
 ## Prerequisites
 
 * Maven 3+
@@ -16,7 +18,7 @@ Before use for the first time the appropriate parameters must be set in the conf
 * **remote_file_path:** Path on remote server to file with deployed dependencies
 * **ssh_key:** File name of the SSH key
 * **ssh_user:** Username of the SSH user
-* **ssh_host:** IP address/Hostname of the remote server with the deploye dependencies file
+* **ssh_host:** IP address/Hostname of the remote server with the deployed dependencies file
 
 ## How to use
 
@@ -24,7 +26,7 @@ Before use for the first time the appropriate parameters must be set in the conf
 
 2. Make the script executable `sudo chmod +x dependencies.sh`
 
-**Optional**: Since the password of the SSH key is requested every time the _ssh_ or _scp_ command is called, it is advisable to store the SSH key+password in an SSH agent. This way the tool can be used without interruptions.
+**Optional**: Since the password of the SSH key is requested every time the _ssh_ or _scp_ command is called it is advisable to store the SSH key+password in an SSH agent. This way the tool can be used without interruptions.
 
 An introduction and/or further reading about _ssh-agent_ can be found for example on [ssh.com](https://www.ssh.com/ssh/agent) or [Wikipedia](https://en.wikipedia.org/wiki/Ssh-agent).
 
