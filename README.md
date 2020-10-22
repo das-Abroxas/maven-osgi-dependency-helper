@@ -1,4 +1,4 @@
-# maven-osgi-dependency-helper
+# Maven OSGi Dependency Helper
 
 This project contains a bash script that can be used by a small group to better keep track of which dependencies of their current OSGi project(s) are already deployed in the framework.
 
