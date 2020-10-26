@@ -26,15 +26,17 @@ Before use for the first time the appropriate parameters must be set in the conf
 
 2. Make the script executable `sudo chmod +x dependencies.sh`
 
+3. Show help for usage information: `./dependencies.sh -h` or `./dependencies.sh -?`
+
 **Optional**: Since the password of the SSH key is requested every time the _ssh_ or _scp_ command is called it is advisable to store the SSH key+password in an SSH agent. This way the tool can be used without interruptions.
 
 An introduction and/or further reading about _ssh-agent_ can be found for example on [ssh.com](https://www.ssh.com/ssh/agent) or [Wikipedia](https://en.wikipedia.org/wiki/Ssh-agent).
 
 ### Show dependencies
 
-`./dependencies.sh show /path/to/maven-project/1 /path/to/maven-project/2 ...`
+`./dependencies.sh -s /path/to/maven-project/1 /path/to/maven-project/2 ...`
 
-With the **_show_** command you get an overview over all transitive dependencies of your local project(s).
+The **_-s_** command switch will get you an overview over all transitive dependencies of your local project(s).
 
 First you get a table where all dependencies are listed and those already used in the framework are marked additionally.
 
@@ -44,12 +46,12 @@ Second you get a tree view of the dependencies that are not yet deployed in the 
 
 ### Add dependencies
 
-`./dependencies.sh add Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ...`
+`./dependencies.sh -a Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ...`
 
-With the **_add_** command you add the specified dependencies to the remote file that holds the already deployed dependencies.
+With the **_-a_** command switch you add the specified dependencies to the remote file that holds the already deployed dependencies.
 
 ### Remove dependencies
 
 `./dependencies.sh remove Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ...`
 
-With the **_remove_** command you remove the specified dependencies from the remote file that holds the already deployed dependencies.
+With the **_-r_** command you remove the specified dependencies from the remote file that holds the already deployed dependencies.
