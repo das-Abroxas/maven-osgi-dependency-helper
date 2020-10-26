@@ -7,7 +7,7 @@
 
 # Regex pattern for maven dependency strings
 #  Should be at least <Group ID>:<Artifact ID>:<Version>:provided:<MD5 Hash> 
-#  but can contain more fields before the MD5 hash at the end
+#  but can contain more fields before the 'provided:<MD5-Sum>' at the end
 pattern='^([a-zA-Z0-9_\-\.]+:){3,}provided:[a-z0-9]{32}$'
 
 # ------------------------------------------------------------------- #
@@ -18,11 +18,13 @@ showHelp() {
     echo "    A script to determine the transitive dependencies of a maven project "
     echo "    and check which of them are already deployed to your Liferay instance."
     echo
-    echo "  Syntax: ./$(basename $0) show   /path/to/maven-project/1 /path/to/maven-project/2 ..."
-    echo "          ./$(basename $0) add    Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ..."
-    echo "          ./$(basename $0) remove Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ..."
+    echo "  Usage: ./$(basename $0) -s /path/to/maven-project/1 /path/to/maven-project/2 ..."
+    echo "         ./$(basename $0) -a Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ..."
+    echo "         ./$(basename $0) -r Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ..."
     echo
-    echo -e "  Help:   ./$(basename $0) -h\n"
+    echo -e "  Help: ./$(basename $0) [-h|-?]\n"
+
+    exit 2
 }
 
 # Checks if the first argument of this function is an existing local directory 
@@ -115,32 +117,53 @@ fetchDeployedDependencies() {
     fi
 }
 
+# Sets a variable with the defined variable name and value(s).
+#  Shows an error and if the variable name is alredy defined and exits the script.
+#
+# $1 - Variable name
+# $2 - Variable value(s)
+set_variable()
+{
+  local varname=$1
+  shift
 
+  if [ -z "${!varname}" ]; then
+    eval "$varname=\"$@\""
+  else
+    echo "Error: $varname already set"
+    showHelp
+  fi
+}
 # ------------------------------------------------------------------- #
 # ----- Argument parsing -------------------------------------------- #
 # ------------------------------------------------------------------- #
-# Dump all script arguments in an array
+# Unset variables which possibly will be used for the script options
+unset action
+
+# Loop through the script parameters with getopts and set the desired variables
+while getopts 'sarp:?h' c
+do
+  case $c in
+    s) set_variable action SHOW ;;
+    a) set_variable action ADD ;;
+    r) set_variable action REMOVE ;;
+    h|?) showHelp ;; esac
+done
+
+# Remove switches from script arguments
+shift $(expr $OPTIND - 1 )
+# Get remaining arguments in array which are the project paths or dependency strings
 args=("$@")
-# Pop first argument as script command
-cmd=${args[0]}
-# Remove first element from argument array
-args=("${args[@]:1}")
-# Check if script command is valid
-allowed_cmds=("show add remove")
-if [[ "${cmd}" == "-h" ]]; then
-    showHelp
-    exit 0
-elif [[ ! "${allowed_cmds[@]}" =~ "${cmd}" ]]; then
-    echo -e "${red}Error: ${cmd} is no valid execution command of the script!${normal}"
-    showHelp
-    exit 1
-fi
+
+# Show help if no action switch is set or path/dependency argument is missing
+[[ -z "$action" ]] && showHelp
+[[ ${#args[@]} -eq 0 ]] && showHelp
 
 
 # ------------------------------------------------------------------- #
 # ----- Main flow of the script ------------------------------------- #
 # ------------------------------------------------------------------- #
-if [[ ${cmd} == show ]]; then 
+if [[ ${action} == SHOW ]]; then 
 
     # Download/Update list with already deployed dependencies
     fetchDeployedDependencies
@@ -158,7 +181,7 @@ if [[ ${cmd} == show ]]; then
     #showDependencies "${args[@]}"
     exit 0
 
-elif [[ ${cmd} == add ]]; then 
+elif [[ ${action} == ADD ]]; then 
 
     # Append dependency string to file on server
     for dependency in "${args[@]}"
@@ -170,7 +193,7 @@ elif [[ ${cmd} == add ]]; then
         ssh -i ${HOME}/.ssh/${ssh_key} ${ssh_user}@${ssh_host} "echo ${dependency} >> ${remote_file_path}"
     done
 
-elif [[ ${cmd} == remove ]]; then 
+elif [[ ${action} == REMOVE ]]; then 
     
     # Remove dependency strings from file on server
     for dependency in "${args[@]}"
