@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # ------------------------------------------------------------------- #
-# ----- Load config and helper variables ---------------------------- #
+# ----- Helper variables -------------------------------------------- #
 # ------------------------------------------------------------------- #
-. ./dependencies.config
+
 
 # Regex pattern for maven dependency strings
 #  Should be at least <Group ID>:<Artifact ID>:<Version>:provided:<MD5 Hash> 
@@ -14,13 +14,12 @@ pattern='^([a-zA-Z0-9_\-\.]+:){3,}provided:[a-z0-9]{32}$'
 # ----- Helper functions -------------------------------------------- #
 # ------------------------------------------------------------------- #
 showHelp() {
-    echo -e "\n  ----- $(basename $0) -----"
+    echo -e "\n ----- $(basename $0) -----"
     echo "    A script to determine the transitive dependencies of a maven project "
     echo "    and check which of them are already deployed to your Liferay instance."
     echo
-    echo "  Usage: ./$(basename $0) -s /path/to/maven-project/1 /path/to/maven-project/2 ..."
-    echo "         ./$(basename $0) -a Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ..."
-    echo "         ./$(basename $0) -r Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ..."
+    echo "  Usage: ./$(basename $0) [-c /path/to/conf] [-s] /path/to/maven-project/1 /path/to/maven-project/2 ..."
+    echo "         ./$(basename $0) [-c /path/to/conf] [-ar] Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ..."
     echo
     echo -e "  Help: ./$(basename $0) [-h|-?]\n"
 
@@ -134,19 +133,38 @@ set_variable()
     showHelp
   fi
 }
+
+# Tries to load the config file. If no path is defined the default path './dependencies.conf' will be tried.
+loadConfig() {
+    path=$1
+    shift
+
+    if [[ ! -z $path ]] && [[ -f $path ]]; then
+        . ${path}
+    elif [[ -f ./dependencies.config ]]; then
+        . ./dependencies.config
+    else
+        echo -e "${bold}${red}Could not find configuration file.
+Please define path with the -c switch or put the configuration file in the same directory as the script.${normal}"
+       exit 1
+    fi
+}
+
+
 # ------------------------------------------------------------------- #
 # ----- Argument parsing -------------------------------------------- #
 # ------------------------------------------------------------------- #
 # Unset variables which possibly will be used for the script options
-unset action
+unset action config
 
 # Loop through the script parameters with getopts and set the desired variables
-while getopts 'sarp:?h' c
+while getopts 'sarc:?h' c
 do
   case $c in
     s) set_variable action SHOW ;;
     a) set_variable action ADD ;;
     r) set_variable action REMOVE ;;
+    c) set_variable config $OPTARG ;;
     h|?) showHelp ;; esac
 done
 
@@ -159,6 +177,8 @@ args=("$@")
 [[ -z "$action" ]] && showHelp
 [[ ${#args[@]} -eq 0 ]] && showHelp
 
+# Load config
+loadConfig ${config}
 
 # ------------------------------------------------------------------- #
 # ----- Main flow of the script ------------------------------------- #
