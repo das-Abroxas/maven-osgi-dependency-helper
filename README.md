@@ -48,10 +48,20 @@ Second you get a tree view of the dependencies that are not yet deployed in the 
 
 `./dependencies.sh -a Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ...`
 
-With the **_-a_** command switch you add the specified dependencies to the remote file that holds the already deployed dependencies.
+With the **_-a_** command switch switch you add the specified dependencies to the remote file that holds the already deployed dependencies.
 
 ### Remove dependencies
 
 `./dependencies.sh remove Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ...`
 
-With the **_-r_** command you remove the specified dependencies from the remote file that holds the already deployed dependencies.
+With the **_-r_** command switch you remove the specified dependencies from the remote file that holds the already deployed dependencies.
+
+### Optional parameters
+
+<dl>
+  <dt>-c /path/to/config</dt>
+  <dd>Define the path to the configuration file. Useful for example if the script is available from a bin directory and the config is stored somewhereelse.</dd>
+
+  <dt>-p Maven-profile</dt>
+  <dd>Define the name of the Maven profile in your project which will be used to generate the list/tree of the transitive dependencies.</dd>
+</dl>
