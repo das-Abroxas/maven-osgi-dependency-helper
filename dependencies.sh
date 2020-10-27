@@ -18,8 +18,8 @@ showHelp() {
     echo "    A script to determine the transitive dependencies of a maven project "
     echo "    and check which of them are already deployed to your Liferay instance."
     echo
-    echo "  Usage: ./$(basename $0) [-c /path/to/conf] [-s] /path/to/maven-project/1 /path/to/maven-project/2 ..."
-    echo "         ./$(basename $0) [-c /path/to/conf] [-ar] Maven:Dependency:String:1.0.0:MD5Sum Maven:Dependency:String:2.0.0:MD5Sum ..."
+    echo "  Usage: ./$(basename $0) [-c /path/to/conf] [-p Profile] -s /path/to/maven-project/1 ..."
+    echo "         ./$(basename $0) [-c /path/to/conf] [-p Profile] -a|r Maven:Dependency:String:1.0.0:MD5Sum ..."
     echo
     echo -e "  Help: ./$(basename $0) [-h|-?]\n"
 
@@ -67,8 +67,10 @@ showDependencies() {
     project=$(basename ${path})
 
     # List all transitive dependencies with Maven that are declared as provided
-    (cd ${path} && mvn -q dependency:list -DoutputFile=/tmp/dep-list-${project} -DincludeScope=provided)
-    (cd ${path} && mvn -q dependency:tree -DoutputFile=/tmp/dep-tree-${project} -DincludeScope=provided)
+    (cd ${path} && mvn -q -P ${profile} dependency:list -DoutputFile=/tmp/dep-list-${project} -DincludeScope=provided)
+    (cd ${path} && mvn -q -P ${profile} dependency:tree -DoutputFile=/tmp/dep-tree-${project} -DincludeScope=provided)
+
+    [[ $? -ne 0 ]] && exit 1
 
     # Remove all lines from list output file that are not dependencies
     sed -i '/^   /!d' /tmp/dep-list-${project}
@@ -155,16 +157,17 @@ Please define path with the -c switch or put the configuration file in the same 
 # ----- Argument parsing -------------------------------------------- #
 # ------------------------------------------------------------------- #
 # Unset variables which possibly will be used for the script options
-unset action config
+unset action config profile
 
 # Loop through the script parameters with getopts and set the desired variables
-while getopts 'sarc:?h' c
+while getopts 'sarc:p:?h' c
 do
   case $c in
     s) set_variable action SHOW ;;
     a) set_variable action ADD ;;
     r) set_variable action REMOVE ;;
     c) set_variable config $OPTARG ;;
+    p) set_variable profile $OPTARG ;;
     h|?) showHelp ;; esac
 done
 
